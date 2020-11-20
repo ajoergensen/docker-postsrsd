@@ -1,0 +1,23 @@
+#!/usr/bin/with-contenv bash
+
+set -x
+
+: ${SRS_DOMAIN:=localhost.localnet}
+# Generate by running 'dd if=/dev/random bs=18 count=1 | base64'
+: ${SRS_SECRET:="setthistoaverylongstring"}
+: ${SRS_EXCLUDE_DOMAINS:""}
+: ${SRS_SEPARATOR:="="}
+: ${SRS_FORWARD_PORT:=10001}
+: ${SRS_REVERSE_PORT:=10002}
+: ${SRS_HASHLENGTH:=4}
+: ${SRS_HASHMIN:=4}
+: ${RUN_AS:=postsrsd}
+: ${CHROOT:=/var/lib/postsrsdr}
+: ${SRS_LISTEN_ADDRESS:="0.0.0.0"}
+
+mkdir -p ${CHROOT}
+chown -R ${RUN_AS} ${CHROOT}
+
+echo "${SRS_SECRET}" > /etc/postsrsd.secret
+
+/usr/sbin/postsrsd -f "${SRS_FORWARD_PORT}" -r "${SRS_REVERSE_PORT}" -l ${SRS_LISTEN_ADDRESS} -d "${SRS_DOMAIN}" -s /etc/postsrsd.secret -a "${SRS_SEPARATOR}" -n "${SRS_HASHLENGTH}" -N "${SRS_HASHMIN}" -u "${RUN_AS}" -c "${CHROOT}" -X"${SRS_EXCLUDE_DOMAINS}"
