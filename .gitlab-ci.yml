@@ -1,9 +1,16 @@
 variables:
   DOCKER_REPO: $DOCKER_USER/postsrsd
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+
+image: docker.nowhere.dk/docker/docker-buildx-qemu
+
+services:
+  - docker:dind
 
 before_script:
  - docker info
- - docker logout $CI_REGISTRY
  - docker run --rm arm64v8/alpine uname -a
  - docker run --rm arm32v7/alpine uname -a
  - docker buildx create --driver docker-container --use
