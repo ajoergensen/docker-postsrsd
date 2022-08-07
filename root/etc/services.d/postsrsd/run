@@ -5,7 +5,7 @@ set -x
 : ${SRS_DOMAIN:=localhost.localnet}
 # Generate by running 'dd if=/dev/random bs=18 count=1 | base64'
 : ${SRS_SECRET:="setthistoaverylongstring"}
-: ${SRS_EXCLUDE_DOMAINS:""}
+: ${SRS_EXCLUDE_DOMAINS:=""}
 : ${SRS_SEPARATOR:="="}
 : ${SRS_FORWARD_PORT:=10001}
 : ${SRS_REVERSE_PORT:=10002}
