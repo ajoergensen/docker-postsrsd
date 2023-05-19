@@ -33,8 +33,11 @@ echo "hash-minimum = ${SRS_HASHMIN}" >> "${CONFIG_FILE}"
 echo "always-rewrite = off" >> "${CONFIG_FILE}"
 echo "unprivileged-user = ${RUN_AS}" >> "${CONFIG_FILE}"
 echo "chroot-dir = ${CHROOT}" >> "${CONFIG_FILE}"
-echo "syslog = on" >> "${CONFIG_FILE}"
+echo "syslog = off" >> "${CONFIG_FILE}"
 
 echo "${SRS_SECRET}" > "${SECRET_FILE}"
 
-/usr/sbin/postsrsd -C "${CONFIG_FILE}"
+# Turn off bash debug, and prepend datetime to every outputed line.
+set +x
+echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting postsrsd"
+/usr/sbin/postsrsd -C "${CONFIG_FILE}" 2>&1 | while IFS= read -r line; do echo "$(date +'%Y-%m-%d %H:%M:%S') - $line"; done
