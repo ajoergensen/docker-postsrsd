@@ -3,6 +3,17 @@ postsrsd
 
 [Postfix Sender Rewriting Scheme daemon](https://github.com/roehling/postsrsd)
 
+Breaking change: PostSRSd has been upgraded to version 2.x and requires changes to your Postfix configuration!
+
+Add the following snippet to your `/etc/postfix/main.cf`
+
+```
+sender_canonical_maps = socketmap:unix:srs:forward
+sender_canonical_classes = envelope_sender
+recipient_canonical_maps = socketmap:unix:srs:reverse
+recipient_canonical_classes = envelope_recipient, header_recipient
+```
+
 PostSRSd 2.x+ requires at least Postfix 2.10 for socketmap support.
 
 ### Usage
@@ -24,4 +35,4 @@ PostSRSd 2.x+ requires at least Postfix 2.10 for socketmap support.
 
 #### Secret
 
-> Be careful that no one can guess your secret, because anyone who knows it can use your mail server as open relay!
+> Be careful that no one can guess your secret, because anyone who knows it can use your mail server as an open relay!
