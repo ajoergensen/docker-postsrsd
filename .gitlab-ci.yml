@@ -1,14 +1,21 @@
-image: docker:git
-
 variables:
+  DOCKER_REPO: $DOCKER_USER/postsrsd
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375/
   DOCKER_DRIVER: overlay2
-  DB: docker build --pull --no-cache --force-rm=true
+
+image: docker.nowhere.dk/docker/docker-buildx-qemu
 
 services:
- - docker:dind
+  - docker:dind
 
 before_script:
  - docker info
+ - docker run --rm arm64v8/alpine uname -a
+ - docker run --rm arm32v7/alpine uname -a
+ - docker buildx create --driver docker-container --use
+ - docker buildx inspect --bootstrap
+ - docker login -u $DOCKER_USER -p $DOCKER_PASS
  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 stages:
@@ -17,17 +24,13 @@ stages:
 build-master:
  stage: build
  script:
-  - $DB -t $CI_REGISTRY_IMAGE .
-  - git config user.email $GITHUB_EMAIL
-  - git config user.name $GITHUB_USER
-  - git push https://$GITHUB_USER:$GITHUB_TOKEN@github.com/$GITHUB_USER/$CI_PROJECT_NAME.git HEAD:main --force
+  - docker buildx build --pull --push --platform linux/arm/v7,linux/arm64/v8,local --tag $DOCKER_REPO . 
  only:
   - master
 
 build:
   stage: build
   script:
-  - $DB -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
-  - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker buildx build --pull --push --platform linux/arm/v7,linux/arm64/v8,local CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
   except:
     - master

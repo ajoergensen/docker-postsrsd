@@ -1,4 +1,4 @@
-FROM ajoergensen/baseimage-alpine
+FROM docker.nowhere.dk/docker/baseimage-alpine
 
 RUN \
 	apk --no-cache upgrade && \
