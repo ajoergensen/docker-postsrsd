@@ -2,13 +2,15 @@
 
 set -x
 
+CONFIG_FILE="/etc/postsrsd.conf"
+SECRET_FILE="/etc/postsrsd.secret"
+
 : ${SRS_DOMAIN:=localhost.localnet}
 # Generate by running 'dd if=/dev/random bs=18 count=1 | base64'
 : ${SRS_SECRET:="setthistoaverylongstring"}
 : ${SRS_EXCLUDE_DOMAINS:=""}
 : ${SRS_SEPARATOR:="="}
-: ${SRS_FORWARD_PORT:=10001}
-: ${SRS_REVERSE_PORT:=10002}
+: ${SRS_SOCKET_PORT:=10003}
 : ${SRS_HASHLENGTH:=4}
 : ${SRS_HASHMIN:=4}
 : ${RUN_AS:=postsrsd}
@@ -18,6 +20,24 @@ set -x
 mkdir -p ${CHROOT}
 chown -R ${RUN_AS} ${CHROOT}
 
-echo "${SRS_SECRET}" > /etc/postsrsd.secret
+echo "domains = {${SRS_EXCLUDE_DOMAINS}}" > "${CONFIG_FILE}"
+echo "srs-domain = ${SRS_DOMAIN}" >> "${CONFIG_FILE}"
+echo "socketmap = inet:${SRS_LISTEN_ADDRESS}:${SRS_SOCKET_PORT}" >> "${CONFIG_FILE}"
+echo "keep-alive = 30" >> "${CONFIG_FILE}"
+echo "original-envelope = embedded" >> "${CONFIG_FILE}"
+echo "secrets-file = \"${SECRET_FILE}\"" >> "${CONFIG_FILE}"
+echo "separator = \"${SRS_SEPARATOR}\"" >> "${CONFIG_FILE}"
+echo "original-envelope = embedded" >> "${CONFIG_FILE}"
+echo "hash-length = ${SRS_HASHLENGTH}" >> "${CONFIG_FILE}"
+echo "hash-minimum = ${SRS_HASHMIN}" >> "${CONFIG_FILE}"
+echo "always-rewrite = off" >> "${CONFIG_FILE}"
+echo "unprivileged-user = ${RUN_AS}" >> "${CONFIG_FILE}"
+echo "chroot-dir = ${CHROOT}" >> "${CONFIG_FILE}"
+echo "syslog = off" >> "${CONFIG_FILE}"
 
-/usr/sbin/postsrsd -f "${SRS_FORWARD_PORT}" -r "${SRS_REVERSE_PORT}" -l ${SRS_LISTEN_ADDRESS} -d "${SRS_DOMAIN}" -s /etc/postsrsd.secret -a "${SRS_SEPARATOR}" -n "${SRS_HASHLENGTH}" -N "${SRS_HASHMIN}" -u "${RUN_AS}" -c "${CHROOT}" -X"${SRS_EXCLUDE_DOMAINS}"
+echo "${SRS_SECRET}" > "${SECRET_FILE}"
+
+# Turn off bash debug, and prepend datetime to every outputed line.
+set +x
+echo "$(date +'%Y-%m-%d %H:%M:%S') - Starting postsrsd"
+/usr/sbin/postsrsd -C "${CONFIG_FILE}" 2>&1 | while IFS= read -r line; do echo "$(date +'%Y-%m-%d %H:%M:%S') - $line"; done

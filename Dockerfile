@@ -8,5 +8,4 @@ RUN \
 COPY root/ /
 RUN chmod -v +x /etc/services.d/*/run /etc/cont-init.d/*
 
-EXPOSE 10001 10002
-
+EXPOSE 10003
